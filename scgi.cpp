@@ -135,7 +135,7 @@ namespace scgi {
         return ss.str();
     }
 
-    const std::string & version() {
+    const std::string &version() {
         static std::string version(SCGI_VERSION);
         return version;
     }

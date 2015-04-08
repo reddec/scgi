@@ -16,7 +16,7 @@ namespace scgi {
     /**
      * Version of SCGI library
      */
-    static const std::string &version();
+    const std::string &version();
 
     /**
      * Collection of helpfull utils

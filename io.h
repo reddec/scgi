@@ -3,6 +3,7 @@
 
 #include <streambuf>
 #include <vector>
+#include <memory>
 
 namespace scgi {
     /**
@@ -19,7 +20,9 @@ namespace scgi {
         /**
          * Get active file descriptor
          */
-        inline int descriptor() const { return fd; }
+        inline int descriptor() const {
+            return fd;
+        }
 
     private:
         int_type underflow();
@@ -48,7 +51,9 @@ namespace scgi {
         /**
          *  Get active file descriptor
          */
-        inline int descriptor() const { return fd; }
+        inline int descriptor() const {
+            return fd;
+        }
 
     private:
         FileWriteBuffer(const FileWriteBuffer &) = delete;
@@ -63,5 +68,89 @@ namespace scgi {
         std::size_t chunk_, count_ = 0;
         std::vector<char> buffer_;
     };
+
+    /**
+    * Connection manager for new requests. For example via Unix or Tcp socket
+    */
+    struct ConnectionManager {
+        /**
+        * Returns current sate of connectionn manager
+        */
+        virtual bool is_active() = 0;
+
+        /**
+        * Wait for new file descriptor. Returns -1 on error
+        */
+        virtual int next_descriptor() = 0;
+
+        virtual ~ConnectionManager();
+
+        typedef std::shared_ptr<ConnectionManager> Ptr;
+    };
+
+
+    /**
+    * Abstract socket functional. ::close and ::accept
+    */
+    struct AbstractSocketManager : public ConnectionManager {
+
+        /**
+        * Accept new client or returns -1 on error
+        */
+        virtual int next_descriptor() override;
+
+        /**
+        * Close descriptor
+        */
+        void stop();
+
+        /**
+        * Calls stop()
+        */
+        virtual  ~AbstractSocketManager();
+
+        /**
+        * Returns true if descriptor has been created and wasn't closed yet
+        */
+        virtual inline bool is_active() override {
+            return descriptor > 0;
+        }
+
+
+    protected:
+        int descriptor = -1;
+    };
+
+    /**
+    * Simple blocking TCP IPv6 server
+    */
+    struct TcpServerManager : public AbstractSocketManager {
+
+        /**
+        * Create server socket, bind it to `bind_host` and port `service` with listen queue `backlog`
+        */
+        TcpServerManager(const std::string &service, const std::string &bind_host = "::", int backlog = 100);
+
+
+        static ConnectionManager::Ptr create(const std::string &service, const std::string &bind_host = "::", int backlog = 100);
+
+    };
+
+
+    /**
+    * Simple blocking UNIX socket server
+    */
+    struct UnixServerManager : public AbstractSocketManager {
+
+        /**
+        * Create UNIX server socket, bind it to `path` with listen queue `backlog`
+        */
+        UnixServerManager(const std::string &path, int backlog = 100);
+
+        static ConnectionManager::Ptr create(const std::string &path, int backlog = 100);
+
+    };
+
+
 }
 #endif  // IO

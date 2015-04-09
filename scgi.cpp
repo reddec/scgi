@@ -55,37 +55,14 @@ namespace scgi {
         close(sock);
     }
 
-    SimpleAcceptor::SimpleAcceptor(const std::string &service,
-                                   const std::string &ip, int backlog) {
-        addrinfo *info;
-        valid = false;
-        sock = socket(AF_INET6, SOCK_STREAM, 0);
-        if (sock < 0) return;
-        if (getaddrinfo(ip.c_str(), service.c_str(), nullptr, &info) < 0) {
-            perror("getaddrinfo");
-            return;
-        }
-        std::unique_ptr<addrinfo, void (*)(addrinfo *)> infoptr(info, freeaddrinfo);
-        if (bind(sock, info->ai_addr, info->ai_addrlen) < 0) {
-            perror("bind");
-            return;
-        }
-        int opt = 1;
-        if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
-            perror("setsockopt");
-            return;
-        }
-        listen(sock, backlog);
-        valid = true;
+    SimpleAcceptor::SimpleAcceptor(std::shared_ptr<ConnectionManager> connection_manager) :
+            connection_manager_(connection_manager) {
     }
 
     RequestPtr SimpleAcceptor::accept() {
-        if (!operator bool()) return nullptr;
-        int client = ::accept(sock, nullptr, nullptr);
-        if (client < 0) {
-            perror("accept");
-            return nullptr;
-        }
+        if (!connection_manager_) return nullptr;
+        int client = connection_manager_->next_descriptor();
+        if (client < 0) return nullptr;
         return std::make_shared<Request>(client, request_id_++);
     }
 
@@ -103,9 +80,6 @@ namespace scgi {
     }
 
     bool Request::parse_data(std::unordered_map<std::string, std::string> &result, http::EncodingType encodingType) {
-//        std::cerr << "Content-Size: " << content_size() << std::endl;
-//        std::cerr << "is_valid: " << is_valid() << std::endl;
-//        std::cerr << "eof: " << input_.eof() << std::endl;
         if (content_size() <= 0 || !is_valid() || input_.eof()) return false;
         //Test supported
         if (encodingType != http::EncodingType::x_www_form_urlencoded) return false;

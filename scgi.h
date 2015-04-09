@@ -32,7 +32,7 @@ namespace scgi {
          */
         template<class Functor>
         static size_t read_allowed(std::istream &in, std::ostream &out, const Functor &func,
-                                   size_t max = std::string::npos) {
+                size_t max = std::string::npos) {
             char c;
             size_t reads = 0;
             while (!in.eof() && reads < max) {
@@ -95,32 +95,44 @@ namespace scgi {
         /**
          * Content length from request headers. Cached value.
          */
-        inline long content_size() const { return content_size_; }
+        inline long content_size() const {
+            return content_size_;
+        }
 
         /**
          * Status of request. Invalid state may be caused by wrong parsing of bad descriptor
          */
-        inline bool is_valid() const { return valid && sock >= 0; }
+        inline bool is_valid() const {
+            return valid && sock >= 0;
+        }
 
         /**
          * Request ID. May be useful for future identification.
          */
-        inline uint64_t id() const { return id_; }
+        inline uint64_t id() const {
+            return id_;
+        }
 
         /**
          * Request path relative to bound script. Cached value. Starts from /
          */
-        inline std::string path() const { return path_; }
+        inline std::string path() const {
+            return path_;
+        }
 
         /**
          * Request HTTP method. Cached value
          */
-        inline std::string method() const { return method_; }
+        inline std::string method() const {
+            return method_;
+        }
 
         /**
          * Request file(socket) descriptor
          */
-        inline int descriptor() const { return sock; }
+        inline int descriptor() const {
+            return sock;
+        }
 
         /**
          * Send HTTP headers and status. Use it before writing any data
@@ -137,7 +149,7 @@ namespace scgi {
          * Parse content into result.
          */
         bool parse_data(std::unordered_map<std::string, std::string> &result,
-                        http::EncodingType encodingType = http::EncodingType::x_www_form_urlencoded);
+                http::EncodingType encodingType = http::EncodingType::x_www_form_urlencoded);
 
         /**
          * Write data to remote side. Returns buffered output stream
@@ -160,12 +172,16 @@ namespace scgi {
         /**
          * Buffered input stream
          */
-        inline std::istream &input() { return input_; }
+        inline std::istream &input() {
+            return input_;
+        }
 
         /**
          * Buffered output stream
          */
-        inline std::ostream &output() { return output_; }
+        inline std::ostream &output() {
+            return output_;
+        }
 
         /**
          * Close descriptor
@@ -196,19 +212,14 @@ namespace scgi {
          * Create server TCP6 socket, bind (by `ip` and tcp `service` as port) and listen with fixed `backlog` size.
          * By default it bounds to all interfaces
          */
-        SimpleAcceptor(const std::string &service, const std::string &ip = "::",
-                       int backlog = 100);
+        SimpleAcceptor(std::shared_ptr<ConnectionManager> connection_manager);
 
         /**
-         * Check acceptor state after construction: if there were any errors on creation stage, it will return false,
-         * otherwise true
-         */
-        explicit inline operator bool() const { return valid && sock > 0; }
-
-        /**
-         * Server socket descriptor
-         */
-        inline int descriptor() const { return sock; }
+        * Get active connection manager
+        */
+        inline std::shared_ptr<ConnectionManager> connection_manager() const {
+            return connection_manager_;
+        }
 
         /**
          * Accept new TCP connection and wraps it to SCGI Request. Returns nullptr on error or in invalid state
@@ -216,10 +227,8 @@ namespace scgi {
         RequestPtr accept();
 
     private:
-
+        std::shared_ptr<ConnectionManager> connection_manager_;
         uint64_t request_id_ = 0;
-        bool valid = false;
-        int sock = -1;
     };
 }
 #endif  // SCGI

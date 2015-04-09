@@ -140,8 +140,8 @@ namespace scgi {
         TcpServerManager(const std::string &service, const std::string &bind_host = "::", int backlog = 100);
 
 
-        static ConnectionManager::Ptr create(const std::string &service, const std::string &bind_host = "::",
-                                             int backlog = 100);
+        static std::shared_ptr<TcpServerManager> create(const std::string &service, const std::string &bind_host = "::",
+                                                        int backlog = 100);
 
     };
 
@@ -158,7 +158,8 @@ namespace scgi {
 
         inline const std::string &path() const { return path_; }
 
-        static ConnectionManager::Ptr create(const std::string &path, int backlog = 100, uint32_t mode = 0777);
+        static std::shared_ptr<UnixServerManager> create(const std::string &path, int backlog = 100,
+                                                         uint32_t mode = 0777);
 
         virtual void stop();
 

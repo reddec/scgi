@@ -134,12 +134,12 @@ namespace scgi {
         }
     }
 
-    ConnectionManager::Ptr TcpServerManager::create(const std::string &service, std::string const &bind_host,
-                                                    int backlog) {
+    std::shared_ptr<TcpServerManager> TcpServerManager::create(const std::string &service, std::string const &bind_host,
+                                                               int backlog) {
         return std::make_shared<TcpServerManager>(service, bind_host, backlog);
     }
 
-    ConnectionManager::Ptr UnixServerManager::create(const std::string &path, int backlog, uint32_t mode) {
+    std::shared_ptr<UnixServerManager> UnixServerManager::create(const std::string &path, int backlog, uint32_t mode) {
         return std::make_shared<UnixServerManager>(path, backlog, mode);
     }
 

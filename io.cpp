@@ -6,10 +6,9 @@ namespace scgi {
             : fd(d), chunk_(chunk_size), buffer_(chunk_size) { }
 
     std::streambuf::int_type FileReadBuffer::underflow() {
-        if (fd < 0) traits_type::eof();
         if (gptr() < egptr())  // buffer not exhausted
             return traits_type::to_int_type(*gptr());
-
+        if (fd < 0) traits_type::eof();
         ssize_t n = read(fd, buffer_.data(), chunk_);
         if (n <= 0) return traits_type::eof();
         char *base = &buffer_.front();

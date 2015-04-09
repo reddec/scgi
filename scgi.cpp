@@ -112,7 +112,8 @@ namespace scgi {
         switch (encodingType) {
             case http::EncodingType::x_www_form_urlencoded: {
                 std::vector<char> buffer(content_size() + 1);
-                input_.getline(buffer.data(), buffer.size());
+                buffer.back() = '\0';
+                input_.getline(buffer.data(), buffer.size() - 1);
                 std::stringstream ss(buffer.data());
                 http::parse_http_urlencoded_form(ss, result);
                 break;

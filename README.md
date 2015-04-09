@@ -9,6 +9,16 @@ SCGI client library for C++11 and linux. Exists packaging for Debian base system
 
 # How to build
 
+# Easy way
+
+Just copy to console and run (tested on Ubuntu 14.04 LTS x86_64)
+
+```
+cd /tmp && rm -rf scgi && git clone https://github.com/reddec/scgi && cd scgi && ./build_debian.sh && sudo dpkg -i Release/scgi-*.deb && cd ../
+```
+
+# Manual build
+
 ## Clone repository
 
 ```

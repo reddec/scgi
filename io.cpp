@@ -150,4 +150,18 @@ namespace scgi {
                 perror("unlink");
         }
     }
+
+    bool AbstractSocketManager::set_accept_timeout(uint64_t milliseconds) {
+        if (!is_active()) return false;
+        struct timeval timeout;
+        timeout.tv_sec = milliseconds / 1000;
+        timeout.tv_usec = (milliseconds % 1000) * 1000;
+        if (setsockopt(descriptor, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout,
+                       sizeof(timeout)) < 0) {
+            perror("setsockopt accept timeout");
+            return false;
+        }
+        return true;
+
+    }
 }

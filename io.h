@@ -116,8 +116,16 @@ namespace scgi {
             return descriptor > 0;
         }
 
+        /**
+         * Set accept timeout or -1 (uint64_t max) for infinity loop.
+         * Return true if operation done. Otherwise prints error and returns false;
+         */
+        bool set_accept_timeout(uint64_t milliseconds = -1);
+
+        inline uint64_t accept_timeout() const { return timeout_; }
 
     protected:
+        uint64_t timeout_ = -1;
         int descriptor = -1;
     };
 

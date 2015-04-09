@@ -10,22 +10,6 @@
 
 namespace scgi {
 
-    const std::string Request::HeaderQuery = "QUERY_STRING";
-    const std::string Request::HeaderContentLength = "CONTENT_LENGTH";
-    const std::string Request::HeaderPath = "PATH_INFO";
-    const std::string Request::HeaderMethod = "REQUEST_METHOD";
-
-    const std::string Request::ContentTypeTextPlain = "text/plain";
-    const std::string Request::ContentTypeTextHtml = "text/html";
-    const std::string Request::ContentTypeApplicationJson = "application/json";
-    const std::string Request::ContentTypeApplicationXml = "application/xml";
-
-    const std::string Request::ResponseHeaderContentType = "Content-Type";
-
-    const std::string  Request::StatusMessageOK = "OK";
-    const std::string  Request::StatusMessageNotFound = "Not Found";
-    const std::string  Request::StatusMessageInternalError = "Internal Server Error";
-
     Request::Request(int fd, uint64_t id)
             : id_(id),
               sock(fd),
@@ -48,21 +32,22 @@ namespace scgi {
         }
         input_.ignore();//comma
         // Parse URL query
-        std::string query_str = headers[HeaderQuery];
+        std::string query_str = headers[header::query];
         std::string::size_type li, pi = 0, sep;
         do {
             li = query_str.find('&', pi);
             sep = query_str.find('=', pi);
             key = query_str.substr(pi, sep - pi);
             value = query_str.substr(sep + 1, li - sep - 1);
-            query[Utils::url_decode(key)] = Utils::url_decode(value);
+            query[http::url_decode(key)] = http::url_decode(value);
             pi = li + 1;
         } while (li != std::string::npos);
         // Cache useful headers
         content_size_ =
-                static_cast<size_t>(std::atol(headers[HeaderContentLength].c_str()));
-        path_ = headers[HeaderPath];
-        method_ = headers[HeaderMethod];
+                static_cast<size_t>(std::atol(headers[header::content_length].c_str()));
+        path_ = headers[header::path];
+        method_ = headers[header::method];
+        valid = true;
     }
 
     Request::~Request() {
@@ -114,29 +99,35 @@ namespace scgi {
     }
 
     void Request::set_response_type(std::string const &type) {
-        response_headers[ResponseHeaderContentType] = type;
+        response_headers[http::header::content_type] = type;
     }
 
-
-    std::string Utils::url_decode(const std::string &s) {
-        std::stringstream ss;
-        char hex[3];
-        hex[2] = '\0';
-        for (size_t i = 0; i < s.size(); ++i) {
-            char c = s[i];
-            if (c == '%') {
-                hex[0] = i + 1 < s.size() && std::isalnum(s[i + 1]) ? s[i + 1] : '0';
-                hex[1] = i + 2 < s.size() && std::isalnum(s[i + 1]) ? s[i + 2] : '0';
-                ss << (char) std::stoi(hex, nullptr, 16);
-                i += 2;
-            } else
-                ss << c;
+    bool Request::parse_data(std::unordered_map<std::string, std::string> &result, http::EncodingType encodingType) {
+//        std::cerr << "Content-Size: " << content_size() << std::endl;
+//        std::cerr << "is_valid: " << is_valid() << std::endl;
+//        std::cerr << "eof: " << input_.eof() << std::endl;
+        if (content_size() <= 0 || !is_valid() || input_.eof()) return false;
+        //Test supported
+        if (encodingType != http::EncodingType::x_www_form_urlencoded) return false;
+        switch (encodingType) {
+            case http::EncodingType::x_www_form_urlencoded: {
+                std::vector<char> buffer(content_size());
+                input_.getline(buffer.data(), buffer.size());
+                std::stringstream ss(buffer.data());
+                http::parse_http_urlencoded_form(ss, result);
+                break;
+            };
+            default:
+                return false;
         }
-        return ss.str();
+        return true;
     }
+
 
     const std::string &version() {
         static std::string version(SCGI_VERSION);
         return version;
     }
+
+
 };

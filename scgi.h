@@ -10,6 +10,7 @@
 #include <functional>
 #include <set>
 #include "io.h"
+#include "http.h"
 
 namespace scgi {
 
@@ -32,10 +33,10 @@ namespace scgi {
         template<class Functor>
         static size_t read_allowed(std::istream &in, std::ostream &out, const Functor &func,
                                    size_t max = std::string::npos) {
-            int c;
+            char c;
             size_t reads = 0;
             while (!in.eof() && reads < max) {
-                in >> c;
+                in.get(c);
                 if (in.eof() || !func(c)) break;
                 out << (char) c;
                 ++reads;
@@ -50,61 +51,33 @@ namespace scgi {
          */
         template<class Functor>
         static size_t skip(std::istream &in, const Functor &func) {
-            int c;
+            char c;
             size_t reads = 0;
             while (!in.eof()) {
-                in >> c;
+                in.get(c);
                 if (in.eof() || !func(c)) break;
                 ++reads;
             }
             return reads;
         }
 
-        static std::string url_decode(const std::string &s);
 
     };
+
+    namespace header {
+        /**
+         * Base SCGI headers
+         */
+        static const std::string query = "QUERY_STRING";
+        static const std::string content_length = "CONTENT_LENGTH";
+        static const std::string path = "PATH_INFO";
+        static const std::string method = "REQUEST_METHOD";
+    }
 
     /**
      * SCGI request class
      */
     struct Request {
-
-        /**
-         * Base content-types
-         */
-        static const std::string ContentTypeTextPlain;       //text/plain
-        static const std::string ContentTypeTextHtml;        //text/html
-        static const std::string ContentTypeApplicationJson; //application/json
-        static const std::string ContentTypeApplicationXml;  //application/xml
-
-        /**
-         * Base SCGI headers
-         */
-        static const std::string HeaderQuery;         // QUERY_STRING
-        static const std::string HeaderContentLength; // CONTENT_LENGTH
-        static const std::string HeaderPath;          // PATH_INFO
-        static const std::string HeaderMethod;        // REQUEST_METHOD
-
-        /**
-         * Base HTTP response headers
-         */
-        static const std::string ResponseHeaderContentType; // Content-Type
-
-        /**
-         * Base HTTP status code
-         */
-        enum class Status : int {
-            OK = 200,
-            NotFound = 404,
-            InternalError = 500
-        };
-
-        /**
-         * Base HTTP status messages
-         */
-        static const std::string StatusMessageOK;            // OK
-        static const std::string StatusMessageNotFound;      // Not Found
-        static const std::string StatusMessageInternalError; // Internal Server Error
 
         //Response headers which will be sent on `begin_response` function
         std::unordered_map<std::string, std::string> response_headers;
@@ -127,7 +100,7 @@ namespace scgi {
         /**
          * Status of request. Invalid state may be caused by wrong parsing of bad descriptor
          */
-        inline bool is_valid() const { return valid && sock > 0; }
+        inline bool is_valid() const { return valid && sock >= 0; }
 
         /**
          * Request ID. May be useful for future identification.
@@ -152,12 +125,19 @@ namespace scgi {
         /**
          * Send HTTP headers and status. Use it before writing any data
          */
-        void begin_response(int code = (int) Status::OK, const std::string &message = StatusMessageOK);
+        void begin_response(int code = (int) http::Status::OK, const std::string &message = http::status_message::ok);
 
         /**
          * Set Content-Type header in response.
          */
-        void set_response_type(const std::string &type = ContentTypeTextPlain);
+        void set_response_type(const std::string &type = http::content_type::text_plain);
+
+
+        /**
+         * Parse content into result.
+         */
+        bool parse_data(std::unordered_map<std::string, std::string> &result,
+                        http::EncodingType encodingType = http::EncodingType::x_www_form_urlencoded);
 
         /**
          * Write data to remote side. Returns buffered output stream
@@ -200,7 +180,7 @@ namespace scgi {
         FileWriteBuffer r_output;
         std::istream input_;
         std::ostream output_;
-        bool valid;
+        bool valid = false;
         size_t content_size_;
 
     };

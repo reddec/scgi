@@ -106,7 +106,7 @@ namespace scgi {
 
     UnixServerManager::UnixServerManager(const std::string &path, int backlog) {
         struct sockaddr_un address;
-        descriptor = socket(PF_UNIX, SOCK_STREAM, 0);
+        descriptor = socket(AF_UNIX, SOCK_STREAM, 0);
         if (descriptor < 0) {
             perror("socket\n");
             return;
@@ -127,7 +127,8 @@ namespace scgi {
         }
     }
 
-    ConnectionManager::Ptr TcpServerManager::create(const std::string &service, std::string const &bind_host, int backlog) {
+    ConnectionManager::Ptr TcpServerManager::create(const std::string &service, std::string const &bind_host,
+                                                    int backlog) {
         return std::make_shared<TcpServerManager>(service, bind_host, backlog);
     }
 
@@ -135,5 +136,11 @@ namespace scgi {
         return std::make_shared<UnixServerManager>(path, backlog);
     }
 
-
+    void UnixServerManager::stop() {
+        if (is_active()) {
+            AbstractSocketManager::stop();
+            if (unlink(path_.c_str()) < 0)
+                perror("unlink");
+        }
+    }
 }

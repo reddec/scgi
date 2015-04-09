@@ -14,6 +14,8 @@
 
 namespace scgi {
 
+    typedef std::unordered_map<std::string, std::string> Headers;
+
     /**
      * Version of SCGI library
      */
@@ -32,7 +34,7 @@ namespace scgi {
          */
         template<class Functor>
         static size_t read_allowed(std::istream &in, std::ostream &out, const Functor &func,
-                size_t max = std::string::npos) {
+                                   size_t max = std::string::npos) {
             char c;
             size_t reads = 0;
             while (!in.eof() && reads < max) {
@@ -149,7 +151,7 @@ namespace scgi {
          * Parse content into result.
          */
         bool parse_data(std::unordered_map<std::string, std::string> &result,
-                http::EncodingType encodingType = http::EncodingType::x_www_form_urlencoded);
+                        http::EncodingType encodingType = http::EncodingType::x_www_form_urlencoded);
 
         /**
          * Write data to remote side. Returns buffered output stream

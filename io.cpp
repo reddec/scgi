@@ -71,7 +71,7 @@ namespace scgi {
         if (!is_active()) return -1;
         int client = ::accept(descriptor, nullptr, nullptr);
         if (client < 0) {
-            if (client != EAGAIN)perror("accept"); //Do not print error in NON-BLOCKING mode
+            if (client != EAGAIN && client != EWOULDBLOCK)perror("accept"); //Do not print error in NON-BLOCKING mode
             return -1;
         }
         return client;

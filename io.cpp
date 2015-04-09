@@ -5,6 +5,7 @@
 #include <cstring>
 #include <sys/un.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 
 namespace scgi {
     FileReadBuffer::FileReadBuffer(int d, std::size_t chunk_size)
@@ -104,7 +105,7 @@ namespace scgi {
         };
     }
 
-    UnixServerManager::UnixServerManager(const std::string &path, int backlog) {
+    UnixServerManager::UnixServerManager(const std::string &path, int backlog, uint32_t mode) {
         struct sockaddr_un address;
         descriptor = socket(AF_UNIX, SOCK_STREAM, 0);
         if (descriptor < 0) {
@@ -125,6 +126,12 @@ namespace scgi {
             stop();
             return;
         }
+
+        if (chmod(path.c_str(), mode) < 0) {
+            perror("chmod");
+            stop();
+            return;
+        }
     }
 
     ConnectionManager::Ptr TcpServerManager::create(const std::string &service, std::string const &bind_host,
@@ -132,8 +139,8 @@ namespace scgi {
         return std::make_shared<TcpServerManager>(service, bind_host, backlog);
     }
 
-    ConnectionManager::Ptr UnixServerManager::create(const std::string &path, int backlog) {
-        return std::make_shared<UnixServerManager>(path, backlog);
+    ConnectionManager::Ptr UnixServerManager::create(const std::string &path, int backlog, uint32_t mode) {
+        return std::make_shared<UnixServerManager>(path, backlog, mode);
     }
 
     void UnixServerManager::stop() {

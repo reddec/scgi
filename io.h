@@ -85,7 +85,7 @@ namespace scgi {
 
         virtual ~ConnectionManager();
 
-        typedef std::shared_ptr <ConnectionManager> Ptr;
+        typedef std::shared_ptr<ConnectionManager> Ptr;
     };
 
 
@@ -102,7 +102,7 @@ namespace scgi {
         /**
         * Close descriptor
         */
-        void stop();
+        virtual void stop();
 
         /**
         * Calls stop()
@@ -146,11 +146,11 @@ namespace scgi {
         /**
         * Create UNIX server socket, bind it to `path` with listen queue `backlog`
         */
-        UnixServerManager(const std::string &path, int backlog = 100);
+        UnixServerManager(const std::string &path, int backlog = 100, uint32_t mode = 0777);
 
         inline const std::string &path() const { return path_; }
 
-        static ConnectionManager::Ptr create(const std::string &path, int backlog = 100);
+        static ConnectionManager::Ptr create(const std::string &path, int backlog = 100, uint32_t mode = 0777);
 
         virtual void stop();
 

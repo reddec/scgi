@@ -142,7 +142,7 @@ CRUD in memory some text data.
 ### Code
 
 
-```
+```c++
 
 #include <scgi/service.h>
 #include <string>

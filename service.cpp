@@ -98,7 +98,6 @@ namespace scgi {
             } catch (std::exception &ex) {
                 std::cerr << "STD exception: " << ex.what() << std::endl;
             } catch (...) {
-                std:
                 std::cerr << "Unknown exception" << std::endl;
             }
         }

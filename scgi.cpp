@@ -75,6 +75,10 @@ namespace scgi {
         output_ << "\r\n";
     }
 
+    void Request::begin_response(http::Status status, std::string const &message) {
+        begin_response((int) status, message);
+    }
+
     void Request::set_response_type(std::string const &type) {
         response_headers[http::header::content_type] = type;
     }

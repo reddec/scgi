@@ -142,6 +142,11 @@ namespace scgi {
         void begin_response(int code = (int) http::Status::OK, const std::string &message = http::status_message::ok);
 
         /**
+         * Send HTTP headers and status with predefined status code. Use it before writing any data
+         */
+        void begin_response(http::Status status, const std::string &message = http::status_message::ok);
+
+        /**
          * Set Content-Type header in response.
          */
         void set_response_type(const std::string &type = http::content_type::text_plain);

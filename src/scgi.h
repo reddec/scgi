@@ -9,7 +9,7 @@
 #include <string>
 #include <functional>
 #include <set>
-#include "io.h"
+#include "io/io.h"
 #include "http.h"
 
 namespace scgi {
@@ -199,8 +199,8 @@ namespace scgi {
         uint64_t id_;
         std::string path_, method_;
         int sock;
-        FileReadBuffer r_input;
-        FileWriteBuffer r_output;
+        io::FileReadBuffer r_input;
+        io::FileWriteBuffer r_output;
         std::istream input_;
         std::ostream output_;
         bool valid = false;
@@ -219,12 +219,12 @@ namespace scgi {
          * Create server TCP6 socket, bind (by `ip` and tcp `service` as port) and listen with fixed `backlog` size.
          * By default it bounds to all interfaces
          */
-        SimpleAcceptor(std::shared_ptr<ConnectionManager> connection_manager);
+        SimpleAcceptor(std::shared_ptr<io::ConnectionManager> connection_manager);
 
         /**
         * Get active connection manager
         */
-        inline std::shared_ptr<ConnectionManager> connection_manager() const {
+        inline std::shared_ptr<io::ConnectionManager> connection_manager() const {
             return connection_manager_;
         }
 
@@ -234,7 +234,7 @@ namespace scgi {
         RequestPtr accept();
 
     private:
-        std::shared_ptr<ConnectionManager> connection_manager_;
+        std::shared_ptr<io::ConnectionManager> connection_manager_;
         uint64_t request_id_ = 0;
     };
 }

@@ -6,7 +6,7 @@
 #define _AUTH_SERVICE_H_
 
 #include <functional>
-#include <scgi/scgi.h>
+#include "scgi.h"
 #include <jsoncpp/json/reader.h>
 #include <jsoncpp/json/value.h>
 #include <unordered_map>
@@ -198,7 +198,7 @@ namespace scgi {
              * Highly recommended use non-blocking mode (ex: accept timeout sets to 1 second) otherwise
              * you can not use idle function (for example: catch SIGINT signal)
              */
-            ServiceManager(scgi::ConnectionManager::Ptr connection_manager);
+            ServiceManager(io::ConnectionManager::Ptr connection_manager);
 
             /**
              * Create new service shared pointer and register it to provided prefix `path`.

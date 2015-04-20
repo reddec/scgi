@@ -4,8 +4,8 @@
 #include <sstream>
 #include <netdb.h>
 
-#ifndef  SCGI_VERSION
-#define SCGI_VERSION "0.0.0"
+#ifndef  BUILD_VERSION
+#define BUILD_VERSION "0.0.0"
 #endif
 
 namespace scgi {
@@ -55,7 +55,7 @@ namespace scgi {
         close(sock);
     }
 
-    SimpleAcceptor::SimpleAcceptor(std::shared_ptr<ConnectionManager> connection_manager) :
+    SimpleAcceptor::SimpleAcceptor(std::shared_ptr<io::ConnectionManager> connection_manager) :
             connection_manager_(connection_manager) {
     }
 
@@ -104,7 +104,7 @@ namespace scgi {
 
 
     const std::string &version() {
-        static std::string version(SCGI_VERSION);
+        static std::string version(BUILD_VERSION);
         return version;
     }
 

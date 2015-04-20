@@ -3,11 +3,12 @@
 //
 
 #include <chrono>
+#include "io/io.h"
 #include "service.h"
 
 namespace scgi {
     namespace service {
-        ServiceManager::ServiceManager(scgi::ConnectionManager::Ptr connection_manager) : acceptor(connection_manager) {
+        ServiceManager::ServiceManager(io::ConnectionManager::Ptr connection_manager) : acceptor(connection_manager) {
         }
 
         void ServiceManager::find_handler(scgi::RequestPtr request) {

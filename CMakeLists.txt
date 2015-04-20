@@ -1,15 +1,15 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(scgi)
 set(VERSION_MAJOR "1")
-set(VERSION_MINOR "2")
+set(VERSION_MINOR "3")
 set(VERSION_PATCH "0")
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 set(DESCRIPTION "SCGI client library for C++11")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -O3 -march=native")
 
-set(HEADERS_LIST src/http.h src/io.h src/scgi.h)
-set(SRC_LIST src/http.cpp src/scgi.cpp src/io.cpp)
+set(HEADERS_LIST src/http.h src/scgi.h)
+set(SRC_LIST src/http.cpp src/scgi.cpp io/src/io.cpp)
 set(LIBS )
 set(RUNTIME_DEPS )
 
@@ -28,16 +28,17 @@ endif()
 # Share library
 add_library(${PROJECT_NAME}-SharedLib SHARED ${SRC_LIST})
 set_target_properties(${PROJECT_NAME}-SharedLib PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
-target_compile_definitions(${PROJECT_NAME}-SharedLib PUBLIC SCGI_VERSION="${VERSION}")
+target_compile_definitions(${PROJECT_NAME}-SharedLib PUBLIC BUILD_VERSION="${VERSION}")
 target_link_libraries(${PROJECT_NAME}-SharedLib ${LIBS})
 
 # Static library
 add_library(${PROJECT_NAME}-StaticLib STATIC ${SRC_LIST})
 set_target_properties(${PROJECT_NAME}-StaticLib PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
-target_compile_definitions(${PROJECT_NAME}-StaticLib PUBLIC SCGI_VERSION="${VERSION}")
+target_compile_definitions(${PROJECT_NAME}-StaticLib PUBLIC BUILD_VERSION="${VERSION}")
 target_link_libraries(${PROJECT_NAME}-StaticLib ${LIBS})
 
 install(FILES ${HEADERS_LIST} DESTINATION /usr/include/scgi/)
+install(FILES io/src/io.h DESTINATION /usr/include/scgi/io/) # Copy from out project. Point for discussion
 install(TARGETS ${PROJECT_NAME}-SharedLib ${PROJECT_NAME}-StaticLib DESTINATION /usr/lib/)
 
 # Setup DEBIAN control files

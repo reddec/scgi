@@ -20,7 +20,13 @@ For services support
 Just copy to console and run (tested on Ubuntu 14.04 LTS x86_64; include services)
 
 ```
-cd /tmp && rm -rf scgi && git clone https://github.com/reddec/scgi && cd scgi && ./build_debian.sh && sudo dpkg -i Release/scgi-*.deb && cd ../
+cd /tmp && \
+rm -rf scgi && \
+git clone --recursive https://github.com/reddec/scgi && \
+cd scgi && \
+./build_debian.sh && \
+sudo dpkg -i Release/scgi-*.deb && \
+cd ../
 ```
 
 # Manual build
@@ -206,7 +212,7 @@ int main() {
     // Show used SCGI library version info
     std::cout << "SCGI library: " << scgi::version() << std::endl;
     // Create connection manager. By default exists TCP or UNIX socket connection manager
-    auto connection_manager = scgi::UnixServerManager::create("/tmp/auth");
+    auto connection_manager = io::UnixServerManager::create("/tmp/auth");
     // Create new service manager with specified connection manager
     scgi::service::ServiceManager serviceManager(connection_manager);
     // Set non-blocking mode

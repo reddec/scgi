@@ -79,7 +79,7 @@ namespace scgi {
     /**
      * SCGI request class
      */
-    struct Request {
+    struct Request : public io::FileStream {
 
         //Response headers which will be sent on `begin_response` function
         std::unordered_map<std::string, std::string> response_headers;
@@ -105,7 +105,7 @@ namespace scgi {
          * Status of request. Invalid state may be caused by wrong parsing of bad descriptor
          */
         inline bool is_valid() const {
-            return valid && sock >= 0;
+            return valid && has_valid_descriptor();
         }
 
         /**
@@ -127,13 +127,6 @@ namespace scgi {
          */
         inline std::string method() const {
             return method_;
-        }
-
-        /**
-         * Request file(socket) descriptor
-         */
-        inline int descriptor() const {
-            return sock;
         }
 
         /**
@@ -163,8 +156,8 @@ namespace scgi {
          */
         template<class T>
         inline std::ostream &operator<<(const T &obj) {
-            output << obj;
-            return output_;
+            output() << obj;
+            return output();
         }
 
         /**
@@ -172,22 +165,8 @@ namespace scgi {
          */
         template<class T>
         inline std::istream &operator>>(T &obj) {
-            input >> obj;
-            return input_;
-        }
-
-        /**
-         * Buffered input stream
-         */
-        inline std::istream &input() {
-            return input_;
-        }
-
-        /**
-         * Buffered output stream
-         */
-        inline std::ostream &output() {
-            return output_;
+            input() >> obj;
+            return input();
         }
 
         /**
@@ -198,11 +177,6 @@ namespace scgi {
     private:
         uint64_t id_;
         std::string path_, method_;
-        int sock;
-        io::FileReadBuffer r_input;
-        io::FileWriteBuffer r_output;
-        std::istream input_;
-        std::ostream output_;
         bool valid = false;
         size_t content_size_;
 

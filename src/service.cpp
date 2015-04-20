@@ -8,7 +8,8 @@
 
 namespace scgi {
     namespace service {
-        ServiceManager::ServiceManager(io::ConnectionManager::Ptr connection_manager) : acceptor(connection_manager) {
+        ServiceManager::ServiceManager(io::Epoll &epoll, io::ConnectionManager::Ptr connection_manager)
+                : io::AsyncSocketServer(epoll, connection_manager) {
         }
 
         void ServiceManager::find_handler(scgi::RequestPtr request) {
@@ -80,22 +81,17 @@ namespace scgi {
             stop();
         }
 
-        void ServiceManager::run() {
-            if (!acceptor.connection_manager()) return;
+        void ServiceManager::on_client_connected(io::FileStream::Ptr client) {
             try {
-                scgi::RequestPtr request;
-                for (request = acceptor.accept(); !stopped; request = acceptor.accept()) {
-                    if (request && request->is_valid()) {
-                        if (debug_) {
-                            std::clog << "Request to " << request->path() << " method " << request->method() <<
-                            std::endl;
-                        }
-                        find_handler(request);
-                    } else {
-                        if (on_idle_) on_idle_();
+                scgi::RequestPtr request = std::make_shared<Request>(client->descriptor(), id_++);
+                if (request && request->is_valid()) {
+                    if (debug_) {
+                        std::clog << "Request to " << request->path() << " method " << request->method() <<
+                        std::endl;
                     }
-                    request = nullptr;
+                    find_handler(request);
                 }
+                request = nullptr;
             } catch (std::exception &ex) {
                 std::cerr << "STD exception: " << ex.what() << std::endl;
             } catch (...) {
@@ -253,5 +249,7 @@ namespace scgi {
             handlers[path] = service;
             return true;
         }
+
+
     }
 }

@@ -11,6 +11,7 @@
 #include <jsoncpp/json/value.h>
 #include <unordered_map>
 #include <chrono>
+#include "io/async.h"
 
 namespace scgi {
     namespace service {
@@ -185,7 +186,7 @@ namespace scgi {
          * Manage services. Connection managing is based on scgi::SimpleAcceptor. Single threaded
          * TODO: Add different strategies (and way for adding new) for multithreading
          */
-        struct ServiceManager {
+        struct ServiceManager : public io::AsyncSocketServer {
 
             /**
              * Container for services on each prefix. Prefix '/' or '' is highly NOT RECOMMENDED because of
@@ -198,7 +199,7 @@ namespace scgi {
              * Highly recommended use non-blocking mode (ex: accept timeout sets to 1 second) otherwise
              * you can not use idle function (for example: catch SIGINT signal)
              */
-            ServiceManager(io::ConnectionManager::Ptr connection_manager);
+            ServiceManager(io::Epoll &epoll, io::ConnectionManager::Ptr connection_manager);
 
             /**
              * Create new service shared pointer and register it to provided prefix `path`.
@@ -219,32 +220,6 @@ namespace scgi {
             bool add_handler(const std::string &path, ServiceHandler::Ref service);
 
             /**
-             * Run accept loop. If accept was not successull, runs idle function
-             */
-            void run();
-
-            /**
-             * Set function on idle
-             */
-            inline void set_on_idle(const std::function<void()> idle) {
-                on_idle_ = idle;
-            }
-
-            /**
-             * Get function on idle
-             */
-            inline const std::function<void()> &on_idle() const {
-                return on_idle_;
-            }
-
-            /**
-             * Set stopping flag. On next accept service manager will be stopped.
-             */
-            inline void stop() {
-                stopped = true;
-            }
-
-            /**
              * Set verbose output on error
              */
             inline void set_debug(bool enable) {
@@ -259,13 +234,6 @@ namespace scgi {
             }
 
             /**
-             * Is service manager stopped
-             */
-            inline bool is_stopped() const {
-                return stopped;
-            }
-
-            /**
              * Stop service manager.
              * Used virtual for future inheritance
              */
@@ -273,7 +241,10 @@ namespace scgi {
 
         protected:
 
-            /**
+
+            virtual void on_client_connected(io::FileStream::Ptr client) override;
+
+/**
              * Process request. Tries find payload (from body, payload param or query params) and call handler.
              * Otherwise send error.
              */
@@ -292,6 +263,7 @@ namespace scgi {
             void send_service_description(scgi::RequestPtr request, bool full = false);
 
         private:
+            uint64_t id_ = 1;
 
             /**
              * Find handler (and process request) or show service info
@@ -311,10 +283,7 @@ namespace scgi {
              */
             Json::Reader reader;
 
-            std::function<void()> on_idle_;
-            bool stopped = false;
             bool debug_ = false;
-            scgi::SimpleAcceptor acceptor;
         };
     }
 }

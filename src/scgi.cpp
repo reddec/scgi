@@ -11,26 +11,22 @@
 namespace scgi {
 
     Request::Request(int fd, uint64_t id)
-            : id_(id),
-              sock(fd),
-              r_input(fd),
-              r_output(fd),
-              input_(&r_input),
-              output_(&r_output) {
+            : FileStream(fd),
+              id_(id) {
         size_t header_length, total = 0;
         std::string key, value;
         // Parse SCGI header size
-        input_ >> header_length;
+        input() >> header_length;
         // Skip delimiter
-        input_.ignore();
+        input().ignore();
         // Read SCGI key-values
-        while (total < header_length && !input_.eof()) {
-            std::getline(input_, key, '\0');
-            std::getline(input_, value, '\0');
+        while (total < header_length && !input().eof()) {
+            std::getline(input(), key, '\0');
+            std::getline(input(), value, '\0');
             headers[key] = value;
             total += 2 + key.size() + value.size();
         }
-        input_.ignore();//comma
+        input().ignore();//comma
         // Parse URL query
         std::string query_str = headers[header::query];
         std::string::size_type li, pi = 0, sep;
@@ -51,8 +47,8 @@ namespace scgi {
     }
 
     Request::~Request() {
-        output_.flush();
-        close(sock);
+        output().flush();
+        close();
     }
 
     SimpleAcceptor::SimpleAcceptor(std::shared_ptr<io::ConnectionManager> connection_manager) :
@@ -68,11 +64,11 @@ namespace scgi {
 
 
     void Request::begin_response(int code, std::string const &message) {
-        output_ << "Status: " << code << " " << message << "\r\n";
+        output() << "Status: " << code << " " << message << "\r\n";
         for (auto &kv:response_headers) {
-            output_ << kv.first << ": " << kv.second << "\r\n";
+            output() << kv.first << ": " << kv.second << "\r\n";
         }
-        output_ << "\r\n";
+        output() << "\r\n";
     }
 
     void Request::begin_response(http::Status status, std::string const &message) {
@@ -84,14 +80,14 @@ namespace scgi {
     }
 
     bool Request::parse_data(std::unordered_map<std::string, std::string> &result, http::EncodingType encodingType) {
-        if (content_size() <= 0 || !is_valid() || input_.eof()) return false;
+        if (content_size() <= 0 || !is_valid() || input().eof()) return false;
         //Test supported
         if (encodingType != http::EncodingType::x_www_form_urlencoded) return false;
         switch (encodingType) {
             case http::EncodingType::x_www_form_urlencoded: {
                 std::vector<char> buffer(content_size() + 1);
                 buffer.back() = '\0';
-                input_.read(buffer.data(), buffer.size() - 1);
+                input().read(buffer.data(), buffer.size() - 1);
                 std::stringstream ss(buffer.data());
                 http::parse_http_urlencoded_form(ss, result);
                 break;

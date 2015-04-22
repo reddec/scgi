@@ -22,7 +22,7 @@ if(WITH_SERVICES)
     list(APPEND SRC_LIST src/service.cpp src/patterns.cpp)
     list(APPEND HEADERS_LIST src/service.h src/patterns.h)
     list(APPEND LIBS jsoncpp IO)
-    list(APPEND RUNTIME_DEPS libjsoncpp-dev IO) # dev - because of required headers
+    list(APPEND RUNTIME_DEPS libjsoncpp-dev,IO) # dev - because of required headers
 endif()
 
 # Share library

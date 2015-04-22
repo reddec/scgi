@@ -2,14 +2,14 @@ cmake_minimum_required(VERSION 2.8.4)
 project(scgi)
 set(VERSION_MAJOR "1")
 set(VERSION_MINOR "4")
-set(VERSION_PATCH "0")
+set(VERSION_PATCH "1")
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 set(DESCRIPTION "SCGI client library for C++11")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -O3 -march=native")
 
 set(HEADERS_LIST src/http.h src/scgi.h)
-set(SRC_LIST src/http.cpp src/scgi.cpp src/io/io.cpp)
+set(SRC_LIST src/http.cpp src/scgi.cpp)
 set(LIBS )
 set(RUNTIME_DEPS )
 
@@ -21,8 +21,8 @@ endif()
 if(WITH_SERVICES)
     list(APPEND SRC_LIST src/service.cpp src/patterns.cpp)
     list(APPEND HEADERS_LIST src/service.h src/patterns.h)
-    list(APPEND LIBS jsoncpp)
-    list(APPEND RUNTIME_DEPS libjsoncpp-dev) # dev - because of required headers
+    list(APPEND LIBS jsoncpp IO)
+    list(APPEND RUNTIME_DEPS libjsoncpp-dev IO) # dev - because of required headers
 endif()
 
 # Share library

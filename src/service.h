@@ -11,7 +11,7 @@
 #include <jsoncpp/json/value.h>
 #include <unordered_map>
 #include <chrono>
-#include "io/async.h"
+#include <io/async.h>
 
 namespace scgi {
     namespace service {
@@ -207,7 +207,7 @@ namespace scgi {
              */
             template<class ClassType, class ...Args>
             std::shared_ptr<ClassType> add_handler(const std::string &path, const Args &...args) {
-                if (path.empty() || path == "/")return false;
+                if (path.empty() || path == "/")return nullptr;
                 auto ptr = std::make_shared<ClassType>(args...);
                 handlers[path] = ptr;
                 return ptr;

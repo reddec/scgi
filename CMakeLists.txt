@@ -38,7 +38,6 @@ target_compile_definitions(${PROJECT_NAME}-StaticLib PUBLIC BUILD_VERSION="${VER
 target_link_libraries(${PROJECT_NAME}-StaticLib ${LIBS})
 
 install(FILES ${HEADERS_LIST} DESTINATION /usr/include/scgi/)
-install(FILES src/io/io.h DESTINATION /usr/include/scgi/io/) # Copy from out project. Point for discussion
 install(TARGETS ${PROJECT_NAME}-SharedLib ${PROJECT_NAME}-StaticLib DESTINATION /usr/lib/)
 
 # Setup DEBIAN control files
